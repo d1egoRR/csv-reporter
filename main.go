@@ -7,9 +7,9 @@ import (
 )
 
 func main() {
-	input := flag.String("input", "", "input csv file (required)")
-	output := flag.String("output", "report.txt", "output file")
-	verbose := flag.Bool("verbose", false, "show verbose output")
+	var input *string = flag.String("input", "", "input csv file (required)")
+	var output *string = flag.String("output", "report.txt", "output file")
+	var verbose *bool = flag.Bool("verbose", false, "show verbose output")
 
 	flag.Parse()
 
