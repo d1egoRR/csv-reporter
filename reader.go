@@ -3,7 +3,10 @@ package main
 import (
 	"encoding/csv"
 	"fmt"
+	"io"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -49,7 +52,7 @@ func ReadCSV(path string) ([]Sale, []string, error) {
 		if err != nil {
 			warnings = append(
 				warnings,
-				fmt.Sprintf("Línea %d: error de formato CSV", lineNum, err)
+				fmt.Sprintf("Línea %d: error de formato CSV: %v", lineNum, err),
 			)
 			continue
 		}
@@ -58,7 +61,7 @@ func ReadCSV(path string) ([]Sale, []string, error) {
 		if err != nil {
 			warnings = append(
 				warnings,
-				fmt.Sprintf("línea %d: %v", lineNum, err)
+				fmt.Sprintf("línea %d: %v", lineNum, err),
 			)
 			continue
 		}
@@ -69,13 +72,12 @@ func ReadCSV(path string) ([]Sale, []string, error) {
 	return sales, warnings, nil
 }
 
-
 func parseRecord(record []string, line int) (Sale, error) {
 	if len(record) < 4 {
 		return Sale{}, fmt.Errorf("línea incompleta")
 	}
 
-	date, err := time.Parse(time.RubyDate, record[0])
+	date, err := time.Parse("2006-01-02", record[0])
 	if err != nil {
 		return Sale{}, fmt.Errorf("fecha inválida")
 	}
@@ -103,7 +105,7 @@ func parseRecord(record []string, line int) (Sale, error) {
 		return Sale{}, fmt.Errorf("precio negativo")
 	}
 
-	sale := Sale {
+	sale := Sale{
 		Date:     date,
 		Product:  product,
 		Quantity: quantity,

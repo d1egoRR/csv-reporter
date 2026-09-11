@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"io"
+	"sort"
+	"strings"
 	"text/tabwriter"
 )
 
@@ -14,9 +16,9 @@ type ProductStat struct {
 	NumSales      int
 }
 
-func GenerateReport(w *io.Writer, sales []Sale) {
+func GenerateReport(w io.Writer, sales []Sale) {
 	if len(sales) == 0 {
-		fmt.Fprintln((w, "No hay datos válidos para generar el informe.")
+		fmt.Fprintln(w, "No hay datos válidos para generar el informe.")
 		return
 	}
 
@@ -36,7 +38,7 @@ func GenerateReport(w *io.Writer, sales []Sale) {
 			statsMap[sale.Product] = stats
 		}
 
-		revenue := float64(sale.Quantity) * sale.UnitPrice
+		revenue := float64(sale.Quantity) * sale.Price
 
 		// Actualizamos las estadísticas
 		stats.TotalQuantity += sale.Quantity
@@ -62,16 +64,16 @@ func GenerateReport(w *io.Writer, sales []Sale) {
 		return statsList[i].TotalRevenue > statsList[j].TotalRevenue
 	})
 
-	frm.Fprintln(w, strings.Repeat("=", 60))
+	fmt.Fprintln(w, strings.Repeat("=", 60))
 	fmt.Fprintln(w, "# Reporte de Ventas por Producto")
-	frm.Fprintln(w, strings.Repeat("=", 60))
+	fmt.Fprintln(w, strings.Repeat("=", 60))
 
-	fmt.Fprintln(w, "Registros procesados: %d\n", len(sales))
-	fmt.Fprintln(w, "Productos únicos: %d\n", len(statsMap))
-	fmt.Fprintln(w, "Cantidad total: %d\n", totalAllQuantity)
-	fmt.Fprintln(w, "Ingresos totales: %.2f\n", totalAllRevenue)
+	fmt.Fprintf(w, "Registros procesados: %d\n", len(sales))
+	fmt.Fprintf(w, "Productos únicos: %d\n", len(statsMap))
+	fmt.Fprintf(w, "Cantidad total: %d\n", totalAllQuantity)
+	fmt.Fprintf(w, "Ingresos totales: %.2f\n", totalAllRevenue)
 
-	tw := tabwriter.NewWriter(w, 0, 0, 2, "", 0)
+	tw := tabwriter.NewWriter(w, 0, 0, 2, ' ', 0)
 
 	fmt.Fprintln(tw, "Producto\tVentas\tCantidad\tPrecio Promedio\tFacturacion")
 	fmt.Fprintln(tw, "------\t------\t------\t------\t----------")
