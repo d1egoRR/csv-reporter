@@ -1,9 +1,10 @@
 package main
 
 import (
+	"cmp"
 	"fmt"
 	"io"
-	"sort"
+	"slices"
 	"strings"
 	"text/tabwriter"
 )
@@ -16,17 +17,29 @@ type ProductStat struct {
 	NumSales      int
 }
 
+type ReportSummary struct {
+	ProcessedRecords int
+	UniqueProducts   int
+	TotalQuantity    int
+	TotalRevenue     float64
+	ProductStats     []*ProductStat
+}
+
 func GenerateReport(w io.Writer, sales []Sale) {
 	if len(sales) == 0 {
 		fmt.Fprintln(w, "No hay datos válidos para generar el informe.")
 		return
 	}
 
+	summary := processSales(sales)
+	generateTableReport(w, summary)
+}
+
+func processSales(sales []Sale) (summary ReportSummary) {
 	statsMap := make(map[string]*ProductStat)
 	var totalAllRevenue float64
 	var totalAllQuantity int
 
-	// Procesamos cada venta para calcular estadísticas
 	for _, sale := range sales {
 		stats, ok := statsMap[sale.Product]
 		if !ok {
@@ -50,6 +63,20 @@ func GenerateReport(w io.Writer, sales []Sale) {
 		totalAllQuantity += sale.Quantity
 	}
 
+	summary = ReportSummary{
+		ProcessedRecords: len(sales),
+		UniqueProducts:   len(statsMap),
+		TotalQuantity:    totalAllQuantity,
+		TotalRevenue:     totalAllRevenue,
+		ProductStats:     buildStatsList(statsMap),
+	}
+
+	sortStats(summary.ProductStats)
+
+	return summary
+}
+
+func buildStatsList(statsMap map[string]*ProductStat) []*ProductStat {
 	var statsList []*ProductStat
 
 	for _, stat := range statsMap {
@@ -60,25 +87,31 @@ func GenerateReport(w io.Writer, sales []Sale) {
 		statsList = append(statsList, stat)
 	}
 
-	sort.Slice(statsList, func(i, j int) bool {
-		return statsList[i].TotalRevenue > statsList[j].TotalRevenue
-	})
+	return statsList
+}
 
+func sortStats(statsList []*ProductStat) {
+	slices.SortFunc(statsList, func(a, b *ProductStat) int {
+		return cmp.Compare(b.TotalRevenue, a.TotalRevenue)
+	})
+}
+
+func generateTableReport(w io.Writer, summary ReportSummary) {
 	fmt.Fprintln(w, strings.Repeat("=", 60))
 	fmt.Fprintln(w, "# Reporte de Ventas por Producto")
 	fmt.Fprintln(w, strings.Repeat("=", 60))
 
-	fmt.Fprintf(w, "Registros procesados: %d\n", len(sales))
-	fmt.Fprintf(w, "Productos únicos: %d\n", len(statsMap))
-	fmt.Fprintf(w, "Cantidad total: %d\n", totalAllQuantity)
-	fmt.Fprintf(w, "Ingresos totales: %.2f\n", totalAllRevenue)
+	fmt.Fprintf(w, "Registros procesados: %d\n", summary.ProcessedRecords)
+	fmt.Fprintf(w, "Productos únicos: %d\n", summary.UniqueProducts)
+	fmt.Fprintf(w, "Cantidad total: %d\n", summary.TotalQuantity)
+	fmt.Fprintf(w, "Ingresos totales: %.2f\n", summary.TotalRevenue)
 
 	tw := tabwriter.NewWriter(w, 0, 0, 2, ' ', 0)
 
 	fmt.Fprintln(tw, "Producto\tVentas\tCantidad\tPrecio Promedio\tFacturacion")
 	fmt.Fprintln(tw, "------\t------\t------\t------\t----------")
 
-	for _, stat := range statsList {
+	for _, stat := range summary.ProductStats {
 		fmt.Fprintf(tw, "%s\t%d\t%d\t%.2f\t%.2f\n",
 			stat.Product,
 			stat.NumSales,
