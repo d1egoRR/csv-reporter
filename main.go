@@ -9,7 +9,16 @@ import (
 
 const version = "0.1.0"
 
+// for Cobra commands (replace main)
+// rename to main
 func main() {
+	if err := rootCmd.Execute(); err != nil {
+		os.Exit(1)
+	}
+}
+
+// rename this when using Cobra
+func main_t() {
 	var input *string = flag.String("input", "", "input csv file (required)")
 	var output *string = flag.String("output", "report.txt", "output file")
 	var verbose *bool = flag.Bool("verbose", false, "show verbose output")

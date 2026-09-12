@@ -29,6 +29,18 @@ go run . --input sample.csv
 
 ## Ejemplos de uso
 
+### Comandos Cobra
+
+```bash
+# Generar informe de ventas con Cobra
+go run . report --input sample.csv --output informe_cobra.txt
+
+# Validar archivo CSV sin generar informe
+go run . validate --input sample.csv
+```
+
+### Modo tradicional (flags)
+
 ```bash
 # Procesar archivo básico
 go run . --input sample.csv
@@ -39,7 +51,8 @@ go run . --input sample.csv --output reporte.txt --verbose
 
 ## Estructura del Proyecto
 
-- `main.go` - Entrada principal y manejo de banderas CLI.
+- `main.go` - Entrada principal y ejecución de comandos.
+- `cobra_command_sample.go` - Definición de comandos y flags con Cobra (`report`, `validate`).
 - `reader.go` - Lectura y parseo de registros CSV (`fecha,producto,cantidad,precio`).
 - `validator.go` - Validación de datos (fechas futuras, límites de precio y cantidad).
-- `reporter.go` - Generación de estadísticas y formato de reporte tabulado.
+- `reporter.go` - Generación de estadísticas y formato de reporte tabulado (`ReportSummary`).
